@@ -18,7 +18,7 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 cmake_minimum_required(VERSION 3.12)
 
 # Nome do projeto
-set(ProjectName tarefa-freertos-1-mirandabiel)
+set(ProjectName str-freertos)
 
 # Caminho do FreeRTOS (pode ser externo ou interno ao projeto)
 if (DEFINED ENV{FREERTOS_PATH})

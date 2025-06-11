@@ -253,3 +253,5 @@
 5575	6922	7713561422687740	CMakeFiles/str-freertos.dir/FreeRTOS/queue.c.obj	41ba504a6d167ea6
 6033	7664	7713561427266189	CMakeFiles/str-freertos.dir/FreeRTOS/tasks.c.obj	e1c151b30460ea6f
 7664	8374	7713561443588586	str-freertos.elf	119972d2e0d3f28f
+59	389	7713563391888293	CMakeFiles/str-freertos.dir/src/main.c.obj	eaeb614e1546a1e9
+390	1149	7713563395210718	str-freertos.elf	119972d2e0d3f28f

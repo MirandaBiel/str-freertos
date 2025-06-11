@@ -41,9 +41,10 @@ set(CMAKE_CXX_STANDARD 17)
 # Inicializa SDK do Pico
 pico_sdk_init()
 
-# Arquivo principal
+# Arquivo principal e fontes dos drivers
 add_executable(${ProjectName}
     src/main.c
+    include/ssd1306_i2c.c
 )
 
 # Diretórios de include (include/ e o raiz do projeto)
@@ -55,11 +56,9 @@ target_include_directories(${ProjectName} PRIVATE
 # Bibliotecas utilizadas
 target_link_libraries(${ProjectName} 
     pico_stdlib 
+    hardware_i2c
     FreeRTOS-Kernel-Heap4
 )
 
 # Gera UF2, bin, etc.
 pico_add_extra_outputs(${ProjectName})
-
-# Caso você tenha libs adicionais no futuro:
-# add_subdirectory(lib)

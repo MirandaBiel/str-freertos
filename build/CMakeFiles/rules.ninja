@@ -6,7 +6,7 @@
 # It is included in the main 'build.ninja'.
 
 # =============================================================================
-# Project: str_veicular_freertos
+# Project: str-freertos
 # Configurations: Release
 # =============================================================================
 # =============================================================================
@@ -14,7 +14,7 @@
 #############################################
 # Rule for compiling ASM files.
 
-rule ASM_COMPILER__str_veicular_freertos_unscanned_Release
+rule ASM_COMPILER__str-freertos_unscanned_Release
   depfile = $DEP_FILE
   deps = gcc
   command = ${LAUNCHER}${CODE_CHECK}C:\Users\gmira\.pico-sdk\toolchain\14_2_Rel1\bin\arm-none-eabi-gcc.exe $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out   -c $in
@@ -24,7 +24,7 @@ rule ASM_COMPILER__str_veicular_freertos_unscanned_Release
 #############################################
 # Rule for compiling C files.
 
-rule C_COMPILER__str_veicular_freertos_unscanned_Release
+rule C_COMPILER__str-freertos_unscanned_Release
   depfile = $DEP_FILE
   deps = gcc
   command = ${LAUNCHER}${CODE_CHECK}C:\Users\gmira\.pico-sdk\toolchain\14_2_Rel1\bin\arm-none-eabi-gcc.exe $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -34,7 +34,7 @@ rule C_COMPILER__str_veicular_freertos_unscanned_Release
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__str_veicular_freertos_unscanned_Release
+rule CXX_COMPILER__str-freertos_unscanned_Release
   depfile = $DEP_FILE
   deps = gcc
   command = ${LAUNCHER}${CODE_CHECK}C:\Users\gmira\.pico-sdk\toolchain\14_2_Rel1\bin\arm-none-eabi-g++.exe $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -44,7 +44,7 @@ rule CXX_COMPILER__str_veicular_freertos_unscanned_Release
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__str_veicular_freertos_Release
+rule CXX_EXECUTABLE_LINKER__str-freertos_Release
   command = C:\WINDOWS\system32\cmd.exe /C "$PRE_LINK && C:\Users\gmira\.pico-sdk\toolchain\14_2_Rel1\bin\arm-none-eabi-g++.exe $FLAGS -Wl,--build-id=none $LINK_FLAGS @$RSP_FILE -o $TARGET_FILE && $POST_BUILD"
   description = Linking CXX executable $TARGET_FILE
   rspfile = $RSP_FILE

@@ -21,8 +21,8 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 
 cmake_minimum_required(VERSION 3.13)
 
-# Nome do projeto
-set(ProjectName str_veicular_freertos)
+# Nome do projeto (CORRIGIDO PARA O NOME ORIGINAL)
+set(ProjectName str-freertos)
 
 # Localização do FreeRTOS
 if (DEFINED ENV{FREERTOS_PATH})

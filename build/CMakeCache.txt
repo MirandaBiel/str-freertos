@@ -172,7 +172,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=str_veicular_freertos
+CMAKE_PROJECT_NAME:STATIC=str-freertos
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=C:/Users/gmira/.pico-sdk/toolchain/14_2_Rel1/bin/arm-none-eabi-ranlib.exe

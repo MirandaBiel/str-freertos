@@ -20,7 +20,7 @@ cmake_minimum_required(VERSION 3.12)
 # Nome do projeto
 set(ProjectName str-freertos)
 
-# Caminho do FreeRTOS (pode ser externo ou interno ao projeto)
+# Caminho do FreeRTOS
 if (DEFINED ENV{FREERTOS_PATH})
   set(FREERTOS_PATH $ENV{FREERTOS_PATH})
 else()
@@ -41,22 +41,30 @@ set(CMAKE_CXX_STANDARD 17)
 # Inicializa SDK do Pico
 pico_sdk_init()
 
-# Arquivo principal e fontes dos drivers
+# 1. DEFINE O EXECUTÁVEL E SEUS ARQUIVOS FONTE
 add_executable(${ProjectName}
     src/main.c
     include/ssd1306_i2c.c
+    include/neopixel.c
 )
 
-# Diretórios de include (include/ e o raiz do projeto)
+# 2. GERA O HEADER DO PIO E O ADICIONA AO EXECUTÁVEL (AGORA JÁ EXISTENTE)
+# Assumindo que ws2818b.pio está na pasta 'include'
+pico_generate_pio_header(${ProjectName} ${CMAKE_CURRENT_LIST_DIR}/include/ws2818b.pio)
+
+# Diretórios de include
 target_include_directories(${ProjectName} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/include
     ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR} # Necessário para encontrar o pio.h gerado
 )
 
 # Bibliotecas utilizadas
 target_link_libraries(${ProjectName} 
     pico_stdlib 
     hardware_i2c
+    hardware_pio
+    hardware_clocks
     FreeRTOS-Kernel-Heap4
 )
 

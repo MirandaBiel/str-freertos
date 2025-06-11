@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "ws2818b.pio.h"
+#include "pico/time.h"
 
 // Definição de pixel GRB
 struct pixel_t {

@@ -10528,11 +10528,11 @@ Disassembly of section .data:
 200000c0 <mutex_enter_blocking>:
 200000c0:	b570      	push	{r4, r5, r6, lr}
 200000c2:	0004      	movs	r4, r0
-200000c4:	f000 f894 	bl	200001f0 <__ulPortLockGetCurrentOwnerId_veneer>
+200000c4:	f000 f884 	bl	200001d0 <__ulPortLockGetCurrentOwnerId_veneer>
 200000c8:	0005      	movs	r5, r0
 200000ca:	e002      	b.n	200000d2 <mutex_enter_blocking+0x12>
 200000cc:	0020      	movs	r0, r4
-200000ce:	f000 f877 	bl	200001c0 <__vPortLockInternalSpinUnlockWithWait_veneer>
+200000ce:	f000 f88f 	bl	200001f0 <__vPortLockInternalSpinUnlockWithWait_veneer>
 200000d2:	6822      	ldr	r2, [r4, #0]
 200000d4:	f3ef 8110 	mrs	r1, PRIMASK
 200000d8:	b672      	cpsid	i
@@ -10573,14 +10573,14 @@ Disassembly of section .data:
 20000126:	2200      	movs	r2, #0
 20000128:	601a      	str	r2, [r3, #0]
 2000012a:	f388 8810 	msr	PRIMASK, r8
-2000012e:	f000 f85f 	bl	200001f0 <__ulPortLockGetCurrentOwnerId_veneer>
+2000012e:	f000 f84f 	bl	200001d0 <__ulPortLockGetCurrentOwnerId_veneer>
 20000132:	42a8      	cmp	r0, r5
 20000134:	d10f      	bne.n	20000156 <mutex_try_enter_block_until+0x5a>
 20000136:	2000      	movs	r0, #0
 20000138:	bc80      	pop	{r7}
 2000013a:	46b8      	mov	r8, r7
 2000013c:	bdf0      	pop	{r4, r5, r6, r7, pc}
-2000013e:	f000 f857 	bl	200001f0 <__ulPortLockGetCurrentOwnerId_veneer>
+2000013e:	f000 f847 	bl	200001d0 <__ulPortLockGetCurrentOwnerId_veneer>
 20000142:	6823      	ldr	r3, [r4, #0]
 20000144:	6060      	str	r0, [r4, #4]
 20000146:	f3bf 8f5f 	dmb	sy
@@ -10589,13 +10589,13 @@ Disassembly of section .data:
 2000014e:	f388 8810 	msr	PRIMASK, r8
 20000152:	2001      	movs	r0, #1
 20000154:	e7f0      	b.n	20000138 <mutex_try_enter_block_until+0x3c>
-20000156:	f000 f84b 	bl	200001f0 <__ulPortLockGetCurrentOwnerId_veneer>
+20000156:	f000 f83b 	bl	200001d0 <__ulPortLockGetCurrentOwnerId_veneer>
 2000015a:	4680      	mov	r8, r0
 2000015c:	e006      	b.n	2000016c <mutex_try_enter_block_until+0x70>
 2000015e:	0032      	movs	r2, r6
 20000160:	003b      	movs	r3, r7
 20000162:	0020      	movs	r0, r4
-20000164:	f000 f834 	bl	200001d0 <__xPortLockInternalSpinUnlockWithBestEffortWaitOrTimeout_veneer>
+20000164:	f000 f82c 	bl	200001c0 <__xPortLockInternalSpinUnlockWithBestEffortWaitOrTimeout_veneer>
 20000168:	2800      	cmp	r0, #0
 2000016a:	d1e4      	bne.n	20000136 <mutex_try_enter_block_until+0x3a>
 2000016c:	6822      	ldr	r2, [r4, #0]
@@ -10638,23 +10638,23 @@ Disassembly of section .data:
 200001bc:	4770      	bx	lr
 200001be:	46c0      	nop			@ (mov r8, r8)
 
-200001c0 <__vPortLockInternalSpinUnlockWithWait_veneer>:
+200001c0 <__xPortLockInternalSpinUnlockWithBestEffortWaitOrTimeout_veneer>:
 200001c0:	b401      	push	{r0}
-200001c2:	4802      	ldr	r0, [pc, #8]	@ (200001cc <__vPortLockInternalSpinUnlockWithWait_veneer+0xc>)
+200001c2:	4802      	ldr	r0, [pc, #8]	@ (200001cc <__xPortLockInternalSpinUnlockWithBestEffortWaitOrTimeout_veneer+0xc>)
 200001c4:	4684      	mov	ip, r0
 200001c6:	bc01      	pop	{r0}
 200001c8:	4760      	bx	ip
 200001ca:	bf00      	nop
-200001cc:	10002ced 	.word	0x10002ced
+200001cc:	10002e1d 	.word	0x10002e1d
 
-200001d0 <__xPortLockInternalSpinUnlockWithBestEffortWaitOrTimeout_veneer>:
+200001d0 <__ulPortLockGetCurrentOwnerId_veneer>:
 200001d0:	b401      	push	{r0}
-200001d2:	4802      	ldr	r0, [pc, #8]	@ (200001dc <__xPortLockInternalSpinUnlockWithBestEffortWaitOrTimeout_veneer+0xc>)
+200001d2:	4802      	ldr	r0, [pc, #8]	@ (200001dc <__ulPortLockGetCurrentOwnerId_veneer+0xc>)
 200001d4:	4684      	mov	ip, r0
 200001d6:	bc01      	pop	{r0}
 200001d8:	4760      	bx	ip
 200001da:	bf00      	nop
-200001dc:	10002e1d 	.word	0x10002e1d
+200001dc:	10002cc1 	.word	0x10002cc1
 
 200001e0 <__vPortLockInternalSpinUnlockWithNotify_veneer>:
 200001e0:	b401      	push	{r0}
@@ -10665,14 +10665,14 @@ Disassembly of section .data:
 200001ea:	bf00      	nop
 200001ec:	10002d55 	.word	0x10002d55
 
-200001f0 <__ulPortLockGetCurrentOwnerId_veneer>:
+200001f0 <__vPortLockInternalSpinUnlockWithWait_veneer>:
 200001f0:	b401      	push	{r0}
-200001f2:	4802      	ldr	r0, [pc, #8]	@ (200001fc <__ulPortLockGetCurrentOwnerId_veneer+0xc>)
+200001f2:	4802      	ldr	r0, [pc, #8]	@ (200001fc <__vPortLockInternalSpinUnlockWithWait_veneer+0xc>)
 200001f4:	4684      	mov	ip, r0
 200001f6:	bc01      	pop	{r0}
 200001f8:	4760      	bx	ip
 200001fa:	bf00      	nop
-200001fc:	10002cc1 	.word	0x10002cc1
+200001fc:	10002ced 	.word	0x10002ced
 
 20000200 <striped_spin_lock_num>:
 20000200:	00000010                                ....

@@ -1,4 +1,5 @@
 C:/Users/gmira/Documents/STR/str-freertos/build/CMakeFiles/str-freertos.dir
+C:/Users/gmira/Documents/STR/str-freertos/build/CMakeFiles/str-freertos_ws2818b_pio_h.dir
 C:/Users/gmira/Documents/STR/str-freertos/build/CMakeFiles/edit_cache.dir
 C:/Users/gmira/Documents/STR/str-freertos/build/CMakeFiles/rebuild_cache.dir
 C:/Users/gmira/Documents/STR/str-freertos/build/FREERTOS_KERNEL/CMakeFiles/edit_cache.dir

@@ -41,25 +41,28 @@ set(CMAKE_CXX_STANDARD 17)
 # Inicializa SDK do Pico
 pico_sdk_init()
 
-# 1. DEFINE O EXECUTÁVEL E SEUS ARQUIVOS FONTE
+# --- ORDEM CORRIGIDA ---
+
+# 1. CRIE O EXECUTÁVEL com todos os seus arquivos fontes
 add_executable(${ProjectName}
     src/main.c
     include/ssd1306_i2c.c
     include/neopixel.c
 )
 
-# 2. GERA O HEADER DO PIO E O ADICIONA AO EXECUTÁVEL (AGORA JÁ EXISTENTE)
-# Assumindo que ws2818b.pio está na pasta 'include'
+# 2. MODIFIQUE O EXECUTÁVEL JÁ EXISTENTE com as configurações necessárias
+pico_enable_stdio_usb(${ProjectName} 1)
+pico_enable_stdio_uart(${ProjectName} 0)
 pico_generate_pio_header(${ProjectName} ${CMAKE_CURRENT_LIST_DIR}/include/ws2818b.pio)
 
-# Diretórios de include
+# 3. Adicione os diretórios de include
 target_include_directories(${ProjectName} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/include
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR} # Necessário para encontrar o pio.h gerado
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-# Bibliotecas utilizadas
+# 4. Linke as bibliotecas necessárias
 target_link_libraries(${ProjectName} 
     pico_stdlib 
     hardware_i2c
@@ -68,5 +71,5 @@ target_link_libraries(${ProjectName}
     FreeRTOS-Kernel-Heap4
 )
 
-# Gera UF2, bin, etc.
+# 5. Adicione os outputs extras
 pico_add_extra_outputs(${ProjectName})

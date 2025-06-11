@@ -1,3 +1,17 @@
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.1.1)
+set(toolchainVersion 14_2_Rel1)
+set(picotoolVersion 2.1.1)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
 # Projeto: Simulador de Sistema Veicular em Tempo Real
 # Arquivo de configuração do Build com CMake
 
@@ -67,6 +81,7 @@ target_include_directories(${ProjectName} PRIVATE
 # 4. Linkar TODAS as bibliotecas de hardware e do FreeRTOS necessárias
 target_link_libraries(${ProjectName} 
     pico_stdlib 
+    hardware_spi
     hardware_i2c        # Para o display OLED
     hardware_pio        # Para a matriz NeoPixel
     hardware_clocks     # Dependência do PIO

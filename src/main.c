@@ -14,6 +14,9 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/i2c.h"
+//#include "hardware/spi.h"
+#include "pico/binary_info.h"
+
 
 // --- FreeRTOS ---
 #include "FreeRTOS.h"
@@ -318,20 +321,13 @@ void task_gerencia_display(void *params) {
     char str_temp[17] = "Temp: --.- C";
     char str_cmd[17] = "Sistema OK";
 
+    const TickType_t xFrequency = pdMS_TO_TICKS(100);//adicao da laura
+    TickType_t xLastWakeTime = xTaskGetTickCount(); //adicao da laura
     while (true) {
-        // Limpa o display
-        memset(g_display_buffer, 0, ssd1306_buffer_length);
-
-        // Desenha as informações atuais
-        ssd1306_draw_string(g_display_buffer, 0, 0, "STR Veicular");
-        ssd1306_draw_string(g_display_buffer, 0, 16, str_vel);
-        ssd1306_draw_string(g_display_buffer, 0, 32, str_temp);
-        ssd1306_draw_string(g_display_buffer, 0, 48, str_cmd);
-        
-        render_on_display(g_display_buffer, &g_frame_area);
-
-        // Aguarda por uma nova mensagem para atualizar os dados
-        if (xQueueReceive(g_queue_display, &msg, portMAX_DELAY) == pdPASS) {
+        while (true) {
+        // Tenta receber mensagens da fila, mas não bloqueia indefinidamente.
+        // Se houver uma mensagem, ela é processada. Se não houver, a função retorna pdFAIL imediatamente.
+        while (xQueueReceive(g_queue_display, &msg, 0) == pdPASS) { // Use 0 para não bloquear
             switch(msg.source) {
                 case UPDATE_VELOCIDADE:
                     sprintf(str_vel, "Vel: %.0f km/h", msg.value);
@@ -344,6 +340,21 @@ void task_gerencia_display(void *params) {
                     break;
             }
         }
+
+        // Limpa o display
+        memset(g_display_buffer, 0, ssd1306_buffer_length);
+
+        // Desenha as informações atuais (que foram atualizadas pelas mensagens da fila)
+        ssd1306_draw_string(g_display_buffer, 0, 0, "STR Veicular");
+        ssd1306_draw_string(g_display_buffer, 0, 16, str_vel);
+        ssd1306_draw_string(g_display_buffer, 0, 32, str_temp);
+        ssd1306_draw_string(g_display_buffer, 0, 48, str_cmd);
+        
+        render_on_display(g_display_buffer, &g_frame_area);
+
+        // Garante que a tarefa de display seja periódica, atualizando a cada 'xFrequency'
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    }
     }
 }
 

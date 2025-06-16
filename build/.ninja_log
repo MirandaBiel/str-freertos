@@ -60,10 +60,10 @@
 3622	3997	7714460764025921	CMakeFiles/str-freertos.dir/C_/Users/gmira/.pico-sdk/sdk/2.1.1/lib/tinyusb/src/class/hid/hid_device.c.obj	24b8ce0dd23b73ef
 2423	2841	7712869047056957	CMakeFiles/tarefa-freertos-1-mirandabiel.dir/FreeRTOS/list.c.obj	487579d3085ea256
 1099	1239	1749680278662659720	CMakeFiles/str-freertos.dir/home/laura/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_float/float_init_rom_rp2040.c.o	6ff979e946835aa9
-1095	1148	1749680278653493054	CMakeFiles/str-freertos.dir/home/laura/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_float/float_aeabi_rp2040.S.o	2388bd13c5325d4
 554	628	7714460733992060	pico-sdk/src/rp2040/boot_stage2/bs2_default.bin	e006b90984f871b1
-2168	2717	7712869044508637	CMakeFiles/tarefa-freertos-1-mirandabiel.dir/FreeRTOS/portable/MemMang/heap_4.c.obj	e25c78f1fc4b961d
+1095	1148	1749680278653493054	CMakeFiles/str-freertos.dir/home/laura/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_float/float_aeabi_rp2040.S.o	2388bd13c5325d4
 2108	2548	1749680279670993238	CMakeFiles/str-freertos.dir/home/laura/.pico-sdk/sdk/2.1.1/lib/tinyusb/src/class/vendor/vendor_device.c.o	5999027b9f8ba5c9
+2168	2717	7712869044508637	CMakeFiles/tarefa-freertos-1-mirandabiel.dir/FreeRTOS/portable/MemMang/heap_4.c.obj	e25c78f1fc4b961d
 940	1139	1749680278497659694	CMakeFiles/str-freertos.dir/home/laura/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_runtime_init/runtime_init_clocks.c.o	985497ed76dec229
 1075	1170	1749680278635159717	CMakeFiles/str-freertos.dir/home/laura/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_int64_ops/pico_int64_ops_aeabi.S.o	e71110fe750e37bc
 2683	3361	7714460754631446	CMakeFiles/str-freertos.dir/C_/Users/gmira/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_cxx_options/new_delete.cpp.obj	a3e05f2ea6e11e7f
@@ -189,7 +189,7 @@
 830	1333	7714460736103331	CMakeFiles/str-freertos.dir/C_/Users/gmira/.pico-sdk/sdk/2.1.1/src/rp2_common/hardware_sync_spin_lock/sync_spin_lock.c.obj	24a9c71ae90495a4
 1311	1763	7713632478440992	CMakeFiles/str_veicular_freertos.dir/C_/Users/gmira/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_runtime/runtime.c.obj	4703d1fff066dd0a
 926	1572	7712869032087555	CMakeFiles/tarefa-freertos-1-mirandabiel.dir/C_/Users/gmira/.pico-sdk/sdk/2.1.1/src/common/pico_util/pheap.c.obj	7825e33b74df3e64
-10	1129	7714461194513066	build.ninja	4a5860cb91d882bf
+10	1129	7717825324021357	build.ninja	4a5860cb91d882bf
 842	1017	7714460736221270	CMakeFiles/str-freertos.dir/C_/Users/gmira/.pico-sdk/sdk/2.1.1/src/rp2_common/hardware_irq/irq_handler_chain.S.obj	76a81af21dbb95f7
 3263	3347	1749678025074676932	pico-sdk/src/rp2040/boot_stage2/CMakeFiles/bs2_default_library.dir/bs2_default_padded_checksummed.S.o	65fc0788cd869e68
 629	779	7714460735487229	C:/Users/gmira/Documents/STR/str-freertos/build/pico-sdk/src/rp2040/boot_stage2/bs2_default_padded_checksummed.S	d2877064c1eebc79

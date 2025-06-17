@@ -14,7 +14,6 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/i2c.h"
-//#include "hardware/spi.h"
 #include "pico/binary_info.h"
 
 
@@ -79,6 +78,7 @@ QueueHandle_t g_queue_display = NULL;
 
 // Estrutura da mensagem enviada para o display
 typedef enum {
+    UPDATE_RPM,
     UPDATE_VELOCIDADE,
     UPDATE_TEMP,
     UPDATE_COMANDO
@@ -125,20 +125,25 @@ void task_gerencia_display(void *params);
 void task_monitor_rpm(void *params) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(5);
+    DisplayMessage msg;
+    msg.source = UPDATE_RPM;
 
     while (true) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency); // Garante período exato
-        
         adc_select_input(ADC_RPM);
         uint16_t rpm_raw = adc_read();
+        msg.value = ((float)rpm_raw)*0.001953125;
+        xQueueSend(g_queue_display, &msg, 0);
         
         // Simula pulso de ignição: pisca o LED se RPM > 0
-        if (rpm_raw > 50) {
+        if (msg.value > 5) {
             gpio_put(PIN_LED_IGNICAO, 1);
             vTaskDelay(pdMS_TO_TICKS(1)); // Pulso curto
             gpio_put(PIN_LED_IGNICAO, 0);
         }
     }
+
+
 }
 
 /**
@@ -318,6 +323,7 @@ void task_comando_piloto(void *params) {
 void task_gerencia_display(void *params) {
     DisplayMessage msg;
     char str_vel[17] = "Vel: --- km/h";
+    char str_rpm[17]= "RPM:  1/min x 1000";
     char str_temp[17] = "Temp: --.- C";
     char str_cmd[17] = "Sistema OK";
 
@@ -329,6 +335,9 @@ void task_gerencia_display(void *params) {
         // Se houver uma mensagem, ela é processada. Se não houver, a função retorna pdFAIL imediatamente.
         while (xQueueReceive(g_queue_display, &msg, 0) == pdPASS) { // Use 0 para não bloquear
             switch(msg.source) {
+                case UPDATE_RPM:
+                    sprintf(str_rpm, "RPM: %.0f x 1000", msg.value);
+                    break;
                 case UPDATE_VELOCIDADE:
                     sprintf(str_vel, "Vel: %.0f km/h", msg.value);
                     break;
@@ -345,7 +354,7 @@ void task_gerencia_display(void *params) {
         memset(g_display_buffer, 0, ssd1306_buffer_length);
 
         // Desenha as informações atuais (que foram atualizadas pelas mensagens da fila)
-        ssd1306_draw_string(g_display_buffer, 0, 0, "STR Veicular");
+        ssd1306_draw_string(g_display_buffer, 0, 0, str_rpm);
         ssd1306_draw_string(g_display_buffer, 0, 16, str_vel);
         ssd1306_draw_string(g_display_buffer, 0, 32, str_temp);
         ssd1306_draw_string(g_display_buffer, 0, 48, str_cmd);

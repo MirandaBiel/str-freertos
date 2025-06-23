@@ -1,4 +1,4 @@
-// Padded and checksummed version of: C:/Users/gmira/Documents/STR/str-freertos/build/pico-sdk/src/rp2040/boot_stage2/bs2_default.bin
+// Padded and checksummed version of: C:/Users/sasac/OneDrive/Documentos/STR/str-freertos/build/pico-sdk/src/rp2040/boot_stage2/bs2_default.bin
 
 .cpu cortex-m0plus
 .thumb

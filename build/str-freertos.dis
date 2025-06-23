@@ -1,5 +1,5 @@
 
-C:/Users/gmira/Documents/STR/str-freertos/build/str-freertos.elf:     file format elf32-littlearm
+C:/Users/sasac/OneDrive/Documentos/STR/str-freertos/build/str-freertos.elf:     file format elf32-littlearm
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
@@ -47,16 +47,16 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  21 .debug_rnglists 0000610e  00000000  00000000  000907e0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 22 .debug_line   000364f7  00000000  00000000  000968ee  2**0
+ 22 .debug_line   00036623  00000000  00000000  000968ee  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 23 .debug_str    0000cb79  00000000  00000000  000ccde5  2**0
+ 23 .debug_str    0000cbe7  00000000  00000000  000ccf11  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 24 .debug_frame  000051c4  00000000  00000000  000d9960  2**2
+ 24 .debug_frame  000051c4  00000000  00000000  000d9af8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 25 .debug_line_str 00000361  00000000  00000000  000deb24  2**0
+ 25 .debug_line_str 0000036b  00000000  00000000  000decbc  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
-C:/Users/gmira/Documents/STR/str-freertos/build/str-freertos.elf:     file format elf32-littlearm
+C:/Users/sasac/OneDrive/Documentos/STR/str-freertos/build/str-freertos.elf:     file format elf32-littlearm
 
 
 Disassembly of section .boot2:

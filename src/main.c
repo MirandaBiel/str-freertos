@@ -1,7 +1,7 @@
 /*
  * PROJETO: Simulador de Sistema de Controle Veicular em Tempo Real
  * DESCRIÇÃO: Implementa 7 tarefas veiculares com FreeRTOS.
- * VERSÃO: RPM exibe diretamente o valor RMS bruto do microfone.
+ * VERSÃO: Saída serial (printf) removida de todo o projeto.
  */
 
 #include <stdio.h>
@@ -45,18 +45,16 @@ void npWrite();
 #define PIN_SENSOR_ABS      6
 #define PIN_CMD_PILOTO      5
 
-#define ADC_RPM             1  // Este canal agora é usado para o COMBUSTÍVEL
+#define ADC_RPM             1
 #define ADC_VELOCIDADE      0
 #define ADC_TEMP            4
 
 // Definições do microfone
-#define MIC_CHANNEL         2 // Este canal agora é usado para o RPM
+#define MIC_CHANNEL         2
 #define MIC_PIN             (26 + MIC_CHANNEL)
 #define ADC_CLOCK_DIV       96.f
 #define MIC_SAMPLES         200
 #define ADC_ADJUST(x)       (x * 3.3f / (1 << 12u) - 1.65f)
-
-// REMOVIDO: Limites de sensibilidade não são mais necessários.
 
 #define I2C_SDA     14
 #define I2C_SCL     15
@@ -129,9 +127,6 @@ float mic_power() {
 // --- TAREFAS ---
 // =============================================================================
 
-/**
- * @brief MODIFICADO: Agora o RPM é o próprio valor RMS medido.
- */
 void task_monitor_rpm(void *params) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(100); 
@@ -144,9 +139,8 @@ void task_monitor_rpm(void *params) {
         adc_select_input(MIC_CHANNEL);
         sample_mic();
         float raw_rms = mic_power();
-        printf("Nivel RMS (para RPM): %.2f\n", raw_rms);
+        // printf("Nivel RMS (para RPM): %.2f\n", raw_rms); // REMOVIDO
 
-        // A função de escala foi removida. O valor do RPM é o próprio RMS.
         msg.value = raw_rms;
         
         xQueueSend(g_queue_display, &msg, 0);
@@ -176,11 +170,10 @@ void task_monitor_combustivel(void *params) {
     }
 }
 
-// --- DEMAIS TAREFAS (lógica interna sem alteração) ---
 void task_logica_abs(void *params) {
     while (true) {
         xSemaphoreTake(g_sem_abs, portMAX_DELAY);
-        printf("Botao B pressionado. (Funcao desativada)\n");
+        // printf("Botao B pressionado. (Funcao desativada)\n"); // REMOVIDO
     }
 }
 
@@ -212,7 +205,7 @@ void task_comando_piloto(void *params) {
         xSemaphoreTake(g_sem_piloto, portMAX_DELAY);
         g_farol_ligado = !g_farol_ligado;
         gpio_put(PIN_LED_FAROL, g_farol_ligado);
-        printf("COMANDO: Farois %s\n", g_farol_ligado ? "LIGADOS" : "DESLIGADOS");
+        // printf("COMANDO: Farois %s\n", g_farol_ligado ? "LIGADOS" : "DESLIGADOS"); // REMOVIDO
     }
 }
 
@@ -250,7 +243,7 @@ void task_monitor_temperatura(void *params) {
 void task_logica_airbag(void *params) {
     while (true) {
         xSemaphoreTake(g_sem_airbag, portMAX_DELAY);
-        printf("EVENTO CRITICO: COLISAO DETECTADA! ACIONANDO AIRBAG...\n");
+        // printf("EVENTO CRITICO: COLISAO DETECTADA! ACIONANDO AIRBAG...\n"); // REMOVIDO
         portDISABLE_INTERRUPTS();
         gpio_put(PIN_BUZZER, 1);
         for (int i = 0; i < NEOPIXEL_COUNT; i++) npSetLED(i, 255, 255, 255);
@@ -301,7 +294,7 @@ void gpio_callback_isr(uint gpio, uint32_t events) {
 
 int main() {
     init_hardware();
-    printf("\n--== STR Veicular com FreeRTOS (v2.6 - RPM Raw RMS) ==--\n");
+    // printf("\n--== STR Veicular com FreeRTOS (v2.7 - No Prints) ==--\n"); // REMOVIDO
 
     g_sem_airbag = xSemaphoreCreateBinary();
     g_sem_abs = xSemaphoreCreateBinary();
@@ -321,13 +314,14 @@ int main() {
     gpio_set_irq_enabled_with_callback(PIN_SENSOR_COLISAO, GPIO_IRQ_EDGE_FALL, true, &gpio_callback_isr);
     gpio_set_irq_enabled_with_callback(PIN_SENSOR_ABS, GPIO_IRQ_EDGE_FALL, true, &gpio_callback_isr);
     
+    // printf("Sistema configurado. Iniciando o scheduler...\n"); // REMOVIDO
     vTaskStartScheduler();
     while(true);
 }
 
 void init_hardware() {
     stdio_init_all();
-    sleep_ms(2000);
+    // sleep_ms(2000); // REMOVIDO
 
     adc_init();
     adc_gpio_init(26 + ADC_VELOCIDADE);

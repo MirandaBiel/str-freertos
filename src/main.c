@@ -1,8 +1,7 @@
 /*
  * PROJETO: Simulador de Sistema de Controle Veicular em Tempo Real
- * DESCRIÇÃO: Implementa 7 tarefas veiculares conforme o planejamento,
- * utilizando FreeRTOS no RP2040 e uma tarefa dedicada para o display OLED.
- * VERSÃO: Funções dos botões do farol e airbag trocadas.
+ * DESCRIÇÃO: Implementa 7 tarefas veiculares com FreeRTOS.
+ * VERSÃO: RPM exibe diretamente o valor RMS bruto do microfone.
  */
 
 #include <stdio.h>
@@ -14,6 +13,7 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/i2c.h"
+#include "hardware/dma.h" 
 #include "pico/binary_info.h"
 
 // --- FreeRTOS ---
@@ -36,30 +36,38 @@ void npWrite();
 // --- DEFINIÇÕES E MAPEAMENTO DE HARDWARE (SIMULAÇÃO) ---
 // =============================================================================
 
-// --- Pinos dos Atuadores Simulados ---
-#define PIN_LED_FAROL       11 // LED Verde: Simula faróis ligados/desligados
-#define PIN_BUZZER          21 // Buzzer para alertas sonoros
-#define PIN_NEOPIXEL        7  // Matriz de LEDs
+#define PIN_LED_FAROL       11
+#define PIN_BUZZER          21
+#define PIN_NEOPIXEL        7
 #define NEOPIXEL_COUNT      25
 
-// --- Pinos dos Sensores/Gatilhos Simulados ---
-// MODIFICADO: Pinos trocados conforme solicitado
-#define PIN_SENSOR_COLISAO  22 // Botão do Joystick: Dispara o airbag
-#define PIN_SENSOR_ABS      6  // Botão B: Dispara a lógica do ABS
-#define PIN_CMD_PILOTO      5  // Botão A: Aciona faróis
+#define PIN_SENSOR_COLISAO  22
+#define PIN_SENSOR_ABS      6
+#define PIN_CMD_PILOTO      5
 
-// Canais ADC para sensores analógicos simulados
-#define ADC_RPM             1  // Eixo Y do Joystick (GP27) -> Rotação do motor
-#define ADC_VELOCIDADE      0  // Eixo X do Joystick (GP26) -> Velocidade
-#define ADC_TEMP            4  // Sensor de temperatura interno do RP2040
+#define ADC_RPM             1  // Este canal agora é usado para o COMBUSTÍVEL
+#define ADC_VELOCIDADE      0
+#define ADC_TEMP            4
 
-// --- Configurações do Display OLED ---
+// Definições do microfone
+#define MIC_CHANNEL         2 // Este canal agora é usado para o RPM
+#define MIC_PIN             (26 + MIC_CHANNEL)
+#define ADC_CLOCK_DIV       96.f
+#define MIC_SAMPLES         200
+#define ADC_ADJUST(x)       (x * 3.3f / (1 << 12u) - 1.65f)
+
+// REMOVIDO: Limites de sensibilidade não são mais necessários.
+
 #define I2C_SDA     14
 #define I2C_SCL     15
 #define I2C_PORT    i2c1
 #define OLED_ADDR   0x3C
 uint8_t g_display_buffer[ssd1306_buffer_length];
 struct render_area g_frame_area;
+
+uint g_dma_channel;
+dma_channel_config g_dma_cfg;
+uint16_t g_mic_buffer[MIC_SAMPLES];
 
 // =============================================================================
 // --- ESTRUTURAS E VARIÁVEIS GLOBAIS DO RTOS ---
@@ -75,13 +83,15 @@ typedef enum { UPDATE_RPM, UPDATE_VELOCIDADE, UPDATE_TEMP } DisplaySource;
 typedef struct { DisplaySource source; float value; } DisplayMessage;
 
 volatile bool g_farol_ligado = false;
-volatile float g_nivel_combustivel = 0.0f;
 
 // =============================================================================
 // --- PROTÓTIPOS DAS TAREFAS E FUNÇÕES ---
 // =============================================================================
 void init_hardware();
 void gpio_callback_isr(uint gpio, uint32_t events);
+
+void sample_mic();
+float mic_power();
 
 void task_debounce_buttons(void *params);
 void task_monitor_rpm(void *params);
@@ -94,47 +104,105 @@ void task_comando_piloto(void *params);
 void task_gerencia_display(void *params);
 
 // =============================================================================
-// --- TAREFAS (Nenhuma alteração na lógica das tarefas) ---
+// --- FUNÇÕES DO MICROFONE ---
 // =============================================================================
+
+void sample_mic() {
+    adc_fifo_drain();
+    adc_run(false);
+    dma_channel_configure(g_dma_channel, &g_dma_cfg, g_mic_buffer, &adc_hw->fifo, MIC_SAMPLES, true);
+    adc_run(true);
+    dma_channel_wait_for_finish_blocking(g_dma_channel);
+    adc_run(false);
+}
+
+float mic_power() {
+    float avg = 0.f;
+    for (uint i = 0; i < MIC_SAMPLES; ++i) {
+        avg += g_mic_buffer[i] * g_mic_buffer[i];
+    }
+    avg /= MIC_SAMPLES;
+    return sqrt(avg);
+}
+
+// =============================================================================
+// --- TAREFAS ---
+// =============================================================================
+
+/**
+ * @brief MODIFICADO: Agora o RPM é o próprio valor RMS medido.
+ */
+void task_monitor_rpm(void *params) {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(100); 
+    DisplayMessage msg;
+    msg.source = UPDATE_RPM;
+
+    while (true) {
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+
+        adc_select_input(MIC_CHANNEL);
+        sample_mic();
+        float raw_rms = mic_power();
+        printf("Nivel RMS (para RPM): %.2f\n", raw_rms);
+
+        // A função de escala foi removida. O valor do RPM é o próprio RMS.
+        msg.value = raw_rms;
+        
+        xQueueSend(g_queue_display, &msg, 0);
+    }
+}
+
+void task_monitor_combustivel(void *params) {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(100);
+
+    while (true) {
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        
+        adc_select_input(ADC_RPM); 
+        uint16_t joy_raw = adc_read();
+
+        float fuel_percentage = ((float)joy_raw / 4095.0f) * 100.0f;
+
+        npClear();
+        int leds_acesos = (int)(fuel_percentage / 4.0f);
+        for (int i = 0; i < leds_acesos; i++) {
+             if (i < 5) npSetLED(i, 0, 0, 50);
+             else if (i < 15) npSetLED(i, 0, 50, 0);
+             else npSetLED(i, 50, 0, 0);
+        }
+        npWrite();
+    }
+}
+
+// --- DEMAIS TAREFAS (lógica interna sem alteração) ---
+void task_logica_abs(void *params) {
+    while (true) {
+        xSemaphoreTake(g_sem_abs, portMAX_DELAY);
+        printf("Botao B pressionado. (Funcao desativada)\n");
+    }
+}
 
 void task_debounce_buttons(void *params) {
     typedef enum { STATE_RELEASED, STATE_PRESSING, STATE_PRESSED } ButtonState;
-
     ButtonState state = STATE_RELEASED;
     int press_counter = 0;
     const int DEBOUNCE_CYCLES = 3;
-
     const TickType_t xFrequency = pdMS_TO_TICKS(20);
     TickType_t xLastWakeTime = xTaskGetTickCount();
-
     while(true) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
         bool is_pressed = (gpio_get(PIN_CMD_PILOTO) == 0);
-
         switch (state) {
-            case STATE_RELEASED:
-                if (is_pressed) {
-                    state = STATE_PRESSING;
-                    press_counter = 1;
-                }
-                break;
+            case STATE_RELEASED: if (is_pressed) { state = STATE_PRESSING; press_counter = 1; } break;
             case STATE_PRESSING:
                 if (is_pressed) {
                     press_counter++;
-                    if (press_counter >= DEBOUNCE_CYCLES) {
-                        xSemaphoreGive(g_sem_piloto);
-                        state = STATE_PRESSED;
-                    }
-                } else {
-                    state = STATE_RELEASED;
-                }
+                    if (press_counter >= DEBOUNCE_CYCLES) { xSemaphoreGive(g_sem_piloto); state = STATE_PRESSED; }
+                } else { state = STATE_RELEASED; }
                 break;
-            case STATE_PRESSED:
-                if (!is_pressed) {
-                    state = STATE_RELEASED;
-                }
-                break;
+            case STATE_PRESSED: if (!is_pressed) { state = STATE_RELEASED; } break;
         }
     }
 }
@@ -148,27 +216,11 @@ void task_comando_piloto(void *params) {
     }
 }
 
-void task_monitor_rpm(void *params) {
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(5);
-    DisplayMessage msg;
-    msg.source = UPDATE_RPM;
-
-    while (true) {
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-        adc_select_input(ADC_RPM);
-        uint16_t rpm_raw = adc_read();
-        msg.value = (float)rpm_raw * 8000.0f / 4095.0f;
-        xQueueSend(g_queue_display, &msg, 0);
-    }
-}
-
 void task_monitor_velocidade(void *params) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(25);
     DisplayMessage msg;
     msg.source = UPDATE_VELOCIDADE;
-
     while (true) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         adc_select_input(ADC_VELOCIDADE);
@@ -184,7 +236,6 @@ void task_monitor_temperatura(void *params) {
     DisplayMessage msg;
     msg.source = UPDATE_TEMP;
     const float CONVERSION_FACTOR = 3.3f / (1 << 12);
-
     while (true) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         adc_select_input(ADC_TEMP);
@@ -193,21 +244,6 @@ void task_monitor_temperatura(void *params) {
         float temp_c = 27.0f - (voltage - 0.706f) / 0.001721f;
         msg.value = temp_c;
         xQueueSend(g_queue_display, &msg, 0);
-    }
-}
-
-void task_monitor_combustivel(void *params) {
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(1000);
-
-    while (true) {
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-        
-        npClear();
-        int leds_acesos = (int)(g_nivel_combustivel / 4.0f);
-        for (int i = 0; i < leds_acesos; i++) {
-        }
-        npWrite();
     }
 }
 
@@ -224,55 +260,27 @@ void task_logica_airbag(void *params) {
     }
 }
 
-void task_logica_abs(void *params) {
-    while (true) {
-        xSemaphoreTake(g_sem_abs, portMAX_DELAY);
-        printf("EVENTO: RODA TRAVANDO! ABS ATIVADO...\n");
-        for(int i = 0; i < 10; i++) {
-            gpio_put(PIN_BUZZER, 1);
-            for(int j=0; j<NEOPIXEL_COUNT; j++) npSetLED(j, 200, 100, 0);
-            npWrite();
-            vTaskDelay(pdMS_TO_TICKS(100));
-            gpio_put(PIN_BUZZER, 0);
-            npClear();
-            npWrite();
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-    }
-}
-
 void task_gerencia_display(void *params) {
     DisplayMessage msg;
     char str_rpm[17] = "RPM: ----";
     char str_vel[17] = "Vel: --- km/h";
     char str_temp[17] = "Temp: --.- C";
-
     const TickType_t xFrequency = pdMS_TO_TICKS(100);
     TickType_t xLastWakeTime = xTaskGetTickCount();
-
     while (true) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
         while (xQueueReceive(g_queue_display, &msg, 0) == pdPASS) {
             switch(msg.source) {
-                case UPDATE_RPM:
-                    sprintf(str_rpm, "RPM: %.0f", msg.value);
-                    break;
-                case UPDATE_VELOCIDADE:
-                    sprintf(str_vel, "Vel: %.0f km/h", msg.value);
-                    break;
-                case UPDATE_TEMP:
-                    sprintf(str_temp, "Temp: %.1f C", msg.value);
-                    break;
+                case UPDATE_RPM: sprintf(str_rpm, "RPM: %.0f", msg.value); break;
+                case UPDATE_VELOCIDADE: sprintf(str_vel, "Vel: %.0f km/h", msg.value); break;
+                case UPDATE_TEMP: sprintf(str_temp, "Temp: %.1f C", msg.value); break;
             }
         }
-
         memset(g_display_buffer, 0, ssd1306_buffer_length);
         ssd1306_draw_string(g_display_buffer, 0, 0, "STR Veicular");
         ssd1306_draw_string(g_display_buffer, 0, 16, str_rpm);
         ssd1306_draw_string(g_display_buffer, 0, 32, str_vel);
         ssd1306_draw_string(g_display_buffer, 0, 48, str_temp);
-        
         render_on_display(g_display_buffer, &g_frame_area);
     }
 }
@@ -293,7 +301,7 @@ void gpio_callback_isr(uint gpio, uint32_t events) {
 
 int main() {
     init_hardware();
-    printf("\n--== STR Veicular com FreeRTOS (v1.7 - Botoes Trocados) ==--\n");
+    printf("\n--== STR Veicular com FreeRTOS (v2.6 - RPM Raw RMS) ==--\n");
 
     g_sem_airbag = xSemaphoreCreateBinary();
     g_sem_abs = xSemaphoreCreateBinary();
@@ -325,6 +333,17 @@ void init_hardware() {
     adc_gpio_init(26 + ADC_VELOCIDADE);
     adc_gpio_init(26 + ADC_RPM);
     adc_set_temp_sensor_enabled(true);
+    adc_gpio_init(MIC_PIN);
+
+    adc_fifo_setup(true, true, 1, false, false);
+    adc_set_clkdiv(ADC_CLOCK_DIV);
+    
+    g_dma_channel = dma_claim_unused_channel(true);
+    g_dma_cfg = dma_channel_get_default_config(g_dma_channel);
+    channel_config_set_transfer_data_size(&g_dma_cfg, DMA_SIZE_16);
+    channel_config_set_read_increment(&g_dma_cfg, false);
+    channel_config_set_write_increment(&g_dma_cfg, true);
+    channel_config_set_dreq(&g_dma_cfg, DREQ_ADC);
 
     gpio_init(PIN_LED_FAROL); gpio_set_dir(PIN_LED_FAROL, GPIO_OUT);
     gpio_init(PIN_BUZZER); gpio_set_dir(PIN_BUZZER, GPIO_OUT);

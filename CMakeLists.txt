@@ -35,7 +35,7 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 
 cmake_minimum_required(VERSION 3.13)
 
-# Nome do projeto (CORRIGIDO PARA O NOME ORIGINAL)
+# Nome do projeto
 set(ProjectName str-freertos)
 
 # Localização do FreeRTOS
@@ -85,7 +85,8 @@ target_link_libraries(${ProjectName}
     hardware_i2c        # Para o display OLED
     hardware_pio        # Para a matriz NeoPixel
     hardware_clocks     # Dependência do PIO
-    hardware_adc        # Para os sensores analógicos (Joystick, Temp)
+    hardware_adc        # Para os sensores analógicos (Joystick, Temp, Mic)
+    hardware_dma        # <<< LINHA ADICIONADA AQUI para o microfone
     FreeRTOS-Kernel-Heap4
 )
 

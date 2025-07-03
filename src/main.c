@@ -43,7 +43,7 @@ void npWrite();
 #define PIN_LED_FAROL       11 // LED Verde: Simula faróis ligados/desligados
 #define PIN_LED_TEMP_ALERTA 12 // LED Azul: Simula alerta de superaquecimento
 #define PIN_BUZZER          21 // Buzzer para alertas sonoros
-#define PIN_NEOPIXEL        7  // Matriz de LEDs
+#define PIN_NEOPIXEL        7  // Matriz de LEDss
 #define NEOPIXEL_COUNT      25
 
 // --- Pinos dos Sensores/Gatilhos Simulados ---

@@ -1,7 +1,7 @@
 /*
  * PROJETO: Simulador de Sistema de Controle Veicular em Tempo Real
  * DESCRIÇÃO: Implementa 7 tarefas veiculares com FreeRTOS.
- * VERSÃO: Saída serial (printf) removida de todo o projeto.
+ * VERSÃO: Lógica do ABS restaurada e prints de debug removidos.
  */
 
 #include <stdio.h>
@@ -49,12 +49,14 @@ void npWrite();
 #define ADC_VELOCIDADE      0
 #define ADC_TEMP            4
 
-// Definições do microfone
 #define MIC_CHANNEL         2
 #define MIC_PIN             (26 + MIC_CHANNEL)
 #define ADC_CLOCK_DIV       96.f
 #define MIC_SAMPLES         200
 #define ADC_ADJUST(x)       (x * 3.3f / (1 << 12u) - 1.65f)
+
+#define MIC_RMS_MIN_THRESHOLD 2055.0f
+#define MIC_RMS_MAX_THRESHOLD 2150.0f
 
 #define I2C_SDA     14
 #define I2C_SCL     15
@@ -127,6 +129,9 @@ float mic_power() {
 // --- TAREFAS ---
 // =============================================================================
 
+/**
+ * @brief MODIFICADO: Print de debug removido.
+ */
 void task_monitor_rpm(void *params) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(100); 
@@ -139,7 +144,6 @@ void task_monitor_rpm(void *params) {
         adc_select_input(MIC_CHANNEL);
         sample_mic();
         float raw_rms = mic_power();
-        // printf("Nivel RMS (para RPM): %.2f\n", raw_rms); // REMOVIDO
 
         msg.value = raw_rms;
         
@@ -170,12 +174,29 @@ void task_monitor_combustivel(void *params) {
     }
 }
 
+/**
+ * @brief MODIFICADO: Lógica original do ABS restaurada.
+ */
 void task_logica_abs(void *params) {
     while (true) {
         xSemaphoreTake(g_sem_abs, portMAX_DELAY);
-        // printf("Botao B pressionado. (Funcao desativada)\n"); // REMOVIDO
+        
+        // Simula modulação do freio por 2 segundos
+        for(int i = 0; i < 10; i++) {
+            gpio_put(PIN_BUZZER, 1);
+            for(int j=0; j<NEOPIXEL_COUNT; j++) npSetLED(j, 200, 100, 0); // Amarelo
+            npWrite();
+            vTaskDelay(pdMS_TO_TICKS(100));
+
+            gpio_put(PIN_BUZZER, 0);
+            npClear();
+            npWrite();
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
     }
 }
+
+// --- DEMAIS TAREFAS (com prints de debug removidos) ---
 
 void task_debounce_buttons(void *params) {
     typedef enum { STATE_RELEASED, STATE_PRESSING, STATE_PRESSED } ButtonState;
@@ -200,12 +221,14 @@ void task_debounce_buttons(void *params) {
     }
 }
 
+/**
+ * @brief MODIFICADO: Print de debug removido.
+ */
 void task_comando_piloto(void *params) {
     while (true) {
         xSemaphoreTake(g_sem_piloto, portMAX_DELAY);
         g_farol_ligado = !g_farol_ligado;
         gpio_put(PIN_LED_FAROL, g_farol_ligado);
-        // printf("COMANDO: Farois %s\n", g_farol_ligado ? "LIGADOS" : "DESLIGADOS"); // REMOVIDO
     }
 }
 
@@ -243,7 +266,7 @@ void task_monitor_temperatura(void *params) {
 void task_logica_airbag(void *params) {
     while (true) {
         xSemaphoreTake(g_sem_airbag, portMAX_DELAY);
-        // printf("EVENTO CRITICO: COLISAO DETECTADA! ACIONANDO AIRBAG...\n"); // REMOVIDO
+        printf("EVENTO CRITICO: COLISAO DETECTADA! ACIONANDO AIRBAG...\n");
         portDISABLE_INTERRUPTS();
         gpio_put(PIN_BUZZER, 1);
         for (int i = 0; i < NEOPIXEL_COUNT; i++) npSetLED(i, 255, 255, 255);
@@ -294,7 +317,7 @@ void gpio_callback_isr(uint gpio, uint32_t events) {
 
 int main() {
     init_hardware();
-    // printf("\n--== STR Veicular com FreeRTOS (v2.7 - No Prints) ==--\n"); // REMOVIDO
+    printf("\n--== STR Veicular com FreeRTOS (v2.7 - ABS Restaurado) ==--\n");
 
     g_sem_airbag = xSemaphoreCreateBinary();
     g_sem_abs = xSemaphoreCreateBinary();
@@ -314,14 +337,13 @@ int main() {
     gpio_set_irq_enabled_with_callback(PIN_SENSOR_COLISAO, GPIO_IRQ_EDGE_FALL, true, &gpio_callback_isr);
     gpio_set_irq_enabled_with_callback(PIN_SENSOR_ABS, GPIO_IRQ_EDGE_FALL, true, &gpio_callback_isr);
     
-    // printf("Sistema configurado. Iniciando o scheduler...\n"); // REMOVIDO
     vTaskStartScheduler();
     while(true);
 }
 
 void init_hardware() {
     stdio_init_all();
-    // sleep_ms(2000); // REMOVIDO
+    sleep_ms(2000);
 
     adc_init();
     adc_gpio_init(26 + ADC_VELOCIDADE);

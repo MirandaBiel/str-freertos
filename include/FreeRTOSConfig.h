@@ -137,8 +137,8 @@ to exclude the API function. */
 #define INCLUDE_xTaskResumeFromISR               1
 #define INCLUDE_xQueueGetMutexHolder             1
 
-/* A header file that defines trace macro can be included here. */
-// Incluindo o cabeçalho do Trace Recorder no final do FreeRTOSConfig.h
-#include "trcRecorder.h"
+#if ( configUSE_TRACE_FACILITY == 1 ) && defined( INC_FREERTOS_H )
+    #include "trcRecorder.h"
+#endif
 
 #endif /* FREERTOS_CONFIG_H */

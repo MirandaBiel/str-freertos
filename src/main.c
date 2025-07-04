@@ -13,7 +13,7 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/i2c.h"
-#include "hardware/dma.h" 
+#include "hardware/dma.h"
 #include "pico/binary_info.h"
 
 // --- FreeRTOS ---
@@ -26,6 +26,9 @@
 #include "ssd1306.h"
 #include "ssd1306_i2c.h"
 
+// --- Tracealyzer ---
+#include "trcRecorder.h" // Adicionado para incluir o Tracealyzer
+
 // Protótipos das funções do neopixel.c
 void npInit(uint pin, uint amount);
 void npSetLED(const uint index, const uint8_t r, const uint8_t g, const uint8_t b);
@@ -36,24 +39,24 @@ void npWrite();
 // --- DEFINIÇÕES E MAPEAMENTO DE HARDWARE (SIMULAÇÃO) ---
 // =============================================================================
 
-#define PIN_LED_FAROL       11
-#define PIN_BUZZER          21
-#define PIN_NEOPIXEL        7
-#define NEOPIXEL_COUNT      25
+#define PIN_LED_FAROL         11
+#define PIN_BUZZER            21
+#define PIN_NEOPIXEL          7
+#define NEOPIXEL_COUNT        25
 
-#define PIN_SENSOR_COLISAO  22
-#define PIN_SENSOR_ABS      6
-#define PIN_CMD_PILOTO      5
+#define PIN_SENSOR_COLISAO    22
+#define PIN_SENSOR_ABS        6
+#define PIN_CMD_PILOTO        5
 
-#define ADC_RPM             1
-#define ADC_VELOCIDADE      0
-#define ADC_TEMP            4
+#define ADC_RPM               1
+#define ADC_VELOCIDADE        0
+#define ADC_TEMP              4
 
-#define MIC_CHANNEL         2
-#define MIC_PIN             (26 + MIC_CHANNEL)
-#define ADC_CLOCK_DIV       96.f
-#define MIC_SAMPLES         200
-#define ADC_ADJUST(x)       (x * 3.3f / (1 << 12u) - 1.65f)
+#define MIC_CHANNEL           2
+#define MIC_PIN               (26 + MIC_CHANNEL)
+#define ADC_CLOCK_DIV         96.f
+#define MIC_SAMPLES           200
+#define ADC_ADJUST(x)         (x * 3.3f / (1 << 12u) - 1.65f)
 
 #define MIC_RMS_MIN_THRESHOLD 2055.0f
 #define MIC_RMS_MAX_THRESHOLD 2150.0f
@@ -134,7 +137,7 @@ float mic_power() {
  */
 void task_monitor_rpm(void *params) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(100); 
+    const TickType_t xFrequency = pdMS_TO_TICKS(100);
     DisplayMessage msg;
     msg.source = UPDATE_RPM;
 
@@ -146,7 +149,7 @@ void task_monitor_rpm(void *params) {
         float raw_rms = mic_power();
 
         msg.value = raw_rms;
-        
+
         xQueueSend(g_queue_display, &msg, 0);
     }
 }
@@ -157,8 +160,8 @@ void task_monitor_combustivel(void *params) {
 
     while (true) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
-        
-        adc_select_input(ADC_RPM); 
+
+        adc_select_input(ADC_RPM);
         uint16_t joy_raw = adc_read();
 
         float fuel_percentage = ((float)joy_raw / 4095.0f) * 100.0f;
@@ -180,7 +183,7 @@ void task_monitor_combustivel(void *params) {
 void task_logica_abs(void *params) {
     while (true) {
         xSemaphoreTake(g_sem_abs, portMAX_DELAY);
-        
+
         // Simula modulação do freio por 2 segundos
         for(int i = 0; i < 10; i++) {
             gpio_put(PIN_BUZZER, 1);
@@ -319,6 +322,11 @@ int main() {
     init_hardware();
     printf("\n--== STR Veicular com FreeRTOS (v2.7 - ABS Restaurado) ==--\n");
 
+    // === INICIALIZAÇÃO DO TRACE RECORDER ===
+    // Deve ser feito após a inicialização do hardware, mas antes da criação das tarefas do RTOS.
+    xTraceEnable(TRC_START);
+    // =====================================
+
     g_sem_airbag = xSemaphoreCreateBinary();
     g_sem_abs = xSemaphoreCreateBinary();
     g_sem_piloto = xSemaphoreCreateBinary();
@@ -336,7 +344,7 @@ int main() {
 
     gpio_set_irq_enabled_with_callback(PIN_SENSOR_COLISAO, GPIO_IRQ_EDGE_FALL, true, &gpio_callback_isr);
     gpio_set_irq_enabled_with_callback(PIN_SENSOR_ABS, GPIO_IRQ_EDGE_FALL, true, &gpio_callback_isr);
-    
+
     vTaskStartScheduler();
     while(true);
 }
@@ -353,7 +361,7 @@ void init_hardware() {
 
     adc_fifo_setup(true, true, 1, false, false);
     adc_set_clkdiv(ADC_CLOCK_DIV);
-    
+
     g_dma_channel = dma_claim_unused_channel(true);
     g_dma_cfg = dma_channel_get_default_config(g_dma_channel);
     channel_config_set_transfer_data_size(&g_dma_cfg, DMA_SIZE_16);

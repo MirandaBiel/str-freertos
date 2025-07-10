@@ -87,6 +87,7 @@ target_link_libraries(${ProjectName}
     hardware_clocks     # Dependência do PIO
     hardware_adc        # Para os sensores analógicos (Joystick, Temp, Mic)
     hardware_dma        # <<< LINHA ADICIONADA AQUI para o microfone
+    hardware_pwm
     FreeRTOS-Kernel-Heap4
 )
 

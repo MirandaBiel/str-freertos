@@ -578,3 +578,13 @@
 4508	5095	7738763726715025	str-freertos.elf	e6364bbe5ccdc9c8
 70	1329	7738773377901756	CMakeFiles/str-freertos.dir/src/main.c.obj	f5d7e55d3481a9cd
 1329	1900	7738773390489005	str-freertos.elf	e6364bbe5ccdc9c8
+218	1772	7738782069859990	CMakeFiles/str-freertos.dir/src/main.c.obj	f5d7e55d3481a9cd
+1773	2880	7738782085423197	str-freertos.elf	e6364bbe5ccdc9c8
+86	1086	7738788363193862	CMakeFiles/str-freertos.dir/src/main.c.obj	f5d7e55d3481a9cd
+77	561	7738788489836186	CMakeFiles/str-freertos.dir/src/main.c.obj	f5d7e55d3481a9cd
+51	547	7738788556192808	CMakeFiles/str-freertos.dir/src/main.c.obj	f5d7e55d3481a9cd
+547	1366	7738788561149558	str-freertos.elf	e6364bbe5ccdc9c8
+29	494	7738791374295673	CMakeFiles/str-freertos.dir/src/main.c.obj	f5d7e55d3481a9cd
+494	1027	7738791378953376	str-freertos.elf	e6364bbe5ccdc9c8
+78	508	7738792476632038	CMakeFiles/str-freertos.dir/src/main.c.obj	f5d7e55d3481a9cd
+509	936	7738792480948223	str-freertos.elf	e6364bbe5ccdc9c8
